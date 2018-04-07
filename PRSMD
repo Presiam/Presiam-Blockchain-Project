@@ -1,0 +1,264 @@
+{\rtf1\ansi\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Riched20 10.0.16299}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 pragma solidity ^0.4.12;\par
+\par
+/**\par
+ * @title SafeMath\par
+ * @dev Math operations with safety checks that throw on error\par
+ */\par
+library SafeMath \{\par
+  function mul(uint256 a, uint256 b) internal constant returns (uint256) \{\par
+    uint256 c = a * b;\par
+    assert(a == 0 || c / a == b);\par
+    return c;\par
+  \}\par
+\par
+  function div(uint256 a, uint256 b) internal constant returns (uint256) \{\par
+    // assert(b > 0); // Solidity automatically throws when dividing by 0\par
+    uint256 c = a / b;\par
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold\par
+    return c;\par
+  \}\par
+\par
+  function sub(uint256 a, uint256 b) internal constant returns (uint256) \{\par
+    assert(b <= a);\par
+    return a - b;\par
+  \}\par
+\par
+  function add(uint256 a, uint256 b) internal constant returns (uint256) \{\par
+    uint256 c = a + b;\par
+    assert(c >= a);\par
+    return c;\par
+  \}\par
+\}\par
+\par
+\par
+/**\par
+ * @title Ownable\par
+ * @dev The Ownable contract has an owner address, and provides basic authorization control\par
+ * functions, this simplifies the implementation of "user permissions".\par
+ */\par
+contract Ownable \{\par
+  address public owner;\par
+\par
+\par
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\par
+\par
+\par
+  /**\par
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender\par
+   * account.\par
+   */\par
+  function Ownable() \{\par
+    owner = msg.sender;\par
+  \}\par
+\par
+\par
+  /**\par
+   * @dev Throws if called by any account other than the owner.\par
+   */\par
+  modifier onlyOwner() \{\par
+    require(msg.sender == owner);\par
+    _;\par
+  \}\par
+\par
+\par
+  /**\par
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.\par
+   * @param newOwner The address to transfer ownership to.\par
+   */\par
+  function transferOwnership(address newOwner) onlyOwner public \{\par
+    require(newOwner != address(0));\par
+    OwnershipTransferred(owner, newOwner);\par
+    owner = newOwner;\par
+  \}\par
+\}\par
+\par
+/**\par
+ * @title ERC20Basic\par
+ * @dev Simpler version of ERC20 interface\par
+ * @dev see {{\field{\*\fldinst{HYPERLINK https://github.com/ethereum/EIPs/issues/179 }}{\fldrslt{https://github.com/ethereum/EIPs/issues/179\ul0\cf0}}}}\f0\fs22\par
+ */\par
+contract ERC20Basic \{\par
+  uint256 public totalSupply;\par
+  function balanceOf(address who) public constant returns (uint256);\par
+  function transfer(address to, uint256 value) public returns (bool);\par
+  event Transfer(address indexed from, address indexed to, uint256 value);\par
+\}\par
+\par
+\par
+/**\par
+ * @title Basic token\par
+ * @dev Basic version of StandardToken, with no allowances.\par
+ */\par
+contract BasicToken is ERC20Basic \{\par
+  using SafeMath for uint256;\par
+\par
+  mapping(address => uint256) balances;\par
+\par
+  /**\par
+  * @dev transfer token for a specified address\par
+  * @param _to The address to transfer to.\par
+  * @param _value The amount to be transferred.\par
+  */\par
+  function transfer(address _to, uint256 _value) public returns (bool) \{\par
+    require(_to != address(0));\par
+\par
+    // SafeMath.sub will throw if there is not enough balance.\par
+    balances[msg.sender] = balances[msg.sender].sub(_value);\par
+    balances[_to] = balances[_to].add(_value);\par
+    Transfer(msg.sender, _to, _value);\par
+    return true;\par
+  \}\par
+\par
+  /**\par
+  * @dev Gets the balance of the specified address.\par
+  * @param _owner The address to query the the balance of.\par
+  * @return An uint256 representing the amount owned by the passed address.\par
+  */\par
+  function balanceOf(address _owner) public constant returns (uint256 balance) \{\par
+    return balances[_owner];\par
+  \}\par
+\}\par
+\par
+/**\par
+ * @title ERC20 interface\par
+ * @dev see {{\field{\*\fldinst{HYPERLINK https://github.com/ethereum/EIPs/issues/20 }}{\fldrslt{https://github.com/ethereum/EIPs/issues/20\ul0\cf0}}}}\f0\fs22\par
+ */\par
+contract ERC20 is ERC20Basic \{\par
+  function allowance(address owner, address spender) public constant returns (uint256);\par
+  function transferFrom(address from, address to, uint256 value) public returns (bool);\par
+  function approve(address spender, uint256 value) public returns (bool);\par
+  event Approval(address indexed owner, address indexed spender, uint256 value);\par
+\}\par
+\par
+\par
+/**\par
+ * @title Standard ERC20 token\par
+ *\par
+ * @dev Implementation of the basic standard token.\par
+ * @dev {{\field{\*\fldinst{HYPERLINK https://github.com/ethereum/EIPs/issues/20 }}{\fldrslt{https://github.com/ethereum/EIPs/issues/20\ul0\cf0}}}}\f0\fs22\par
+ * @dev Based on code by FirstBlood: {{\field{\*\fldinst{HYPERLINK https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol }}{\fldrslt{https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol\ul0\cf0}}}}\f0\fs22\par
+ */\par
+contract StandardToken is ERC20, BasicToken \{\par
+\par
+  mapping (address => mapping (address => uint256)) allowed;\par
+\par
+\par
+  /**\par
+   * @dev Transfer tokens from one address to another\par
+   * @param _from address The address which you want to send tokens from\par
+   * @param _to address The address which you want to transfer to\par
+   * @param _value uint256 the amount of tokens to be transferred\par
+   */\par
+  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) \{\par
+    require(_to != address(0));\par
+\par
+    uint256 _allowance = allowed[_from][msg.sender];\par
+\par
+    // Check is not needed because sub(_allowance, _value) will already throw if this condition is not met\par
+    // require (_value <= _allowance);\par
+\par
+    balances[_from] = balances[_from].sub(_value);\par
+    balances[_to] = balances[_to].add(_value);\par
+    allowed[_from][msg.sender] = _allowance.sub(_value);\par
+    Transfer(_from, _to, _value);\par
+    return true;\par
+  \}\par
+\par
+  /**\par
+   * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.\par
+   *\par
+   * Beware that changing an allowance with this method brings the risk that someone may use both the old\par
+   * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this\par
+   * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:\par
+   * {{\field{\*\fldinst{HYPERLINK https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729 }}{\fldrslt{https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\ul0\cf0}}}}\f0\fs22\par
+   * @param _spender The address which will spend the funds.\par
+   * @param _value The amount of tokens to be spent.\par
+   */\par
+  function approve(address _spender, uint256 _value) public returns (bool) \{\par
+    allowed[msg.sender][_spender] = _value;\par
+    Approval(msg.sender, _spender, _value);\par
+    return true;\par
+  \}\par
+\par
+  /**\par
+   * @dev Function to check the amount of tokens that an owner allowed to a spender.\par
+   * @param _owner address The address which owns the funds.\par
+   * @param _spender address The address which will spend the funds.\par
+   * @return A uint256 specifying the amount of tokens still available for the spender.\par
+   */\par
+  function allowance(address _owner, address _spender) public constant returns (uint256 remaining) \{\par
+    return allowed[_owner][_spender];\par
+  \}\par
+\par
+  /**\par
+   * approve should be called when allowed[_spender] == 0. To increment\par
+   * allowed value is better to use this function to avoid 2 calls (and wait until\par
+   * the first transaction is mined)\par
+   * From MonolithDAO Token.sol\par
+   */\par
+  function increaseApproval (address _spender, uint _addedValue)\par
+    returns (bool success) \{\par
+    allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);\par
+    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);\par
+    return true;\par
+  \}\par
+\par
+  function decreaseApproval (address _spender, uint _subtractedValue)\par
+    returns (bool success) \{\par
+    uint oldValue = allowed[msg.sender][_spender];\par
+    if (_subtractedValue > oldValue) \{\par
+      allowed[msg.sender][_spender] = 0;\par
+    \} else \{\par
+      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);\par
+    \}\par
+    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);\par
+    return true;\par
+  \}\par
+\}\par
+\par
+\par
+/**\par
+ * @title Burnable Token\par
+ * @dev Token that can be irreversibly burned (destroyed).\par
+ */\par
+contract BurnableToken is StandardToken \{\par
+\par
+    event Burn(address indexed burner, uint256 value);\par
+\par
+    /**\par
+     * @dev Burns a specific amount of tokens.\par
+     * @param _value The amount of token to be burned.\par
+     */\par
+    function burn(uint256 _value) public \{\par
+        require(_value > 0);\par
+        require(_value <= balances[msg.sender]);\par
+        // no need to require value <= totalSupply, since that would imply the\par
+        // sender's balance is greater than the totalSupply, which *should* be an assertion failure\par
+\par
+        address burner = msg.sender;\par
+        balances[burner] = balances[burner].sub(_value);\par
+        totalSupply = totalSupply.sub(_value);\par
+        Burn(burner, _value);\par
+        Transfer(burner, address(0), _value);\par
+    \}\par
+\}\par
+\par
+contract PresiamDrop is BurnableToken, Ownable \{\par
+\par
+    string public constant name = "PresiamDrop";\par
+    string public constant symbol = "PRSMD";\par
+    uint public constant decimals = 18;\par
+    // there is no problem in using * here instead of .mul()\par
+    uint256 public constant initialSupply = 40000000 * (10 ** uint256(decimals));\par
+\par
+    // Constructors\par
+    function PresiamDrop () \{\par
+        totalSupply = initialSupply;\par
+        balances[msg.sender] = initialSupply; // Send all tokens to owner\par
+    \}\par
+\par
+\}\par
+}
